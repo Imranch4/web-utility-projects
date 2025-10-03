@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Liste de tâches (To-Do List)</title>
+    <style>
+        
+        * {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: #4a6da7;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 2.2rem;
+            border-bottom: 2px solid #4a6da7;
+            padding-bottom: 10px;
+        }
+        
+        h2 {
+            color: #4a6da7;
+            margin: 30px 0 15px 0;
+            font-size: 1.6rem;
+        }
+        
+        input[type="text"] {
+            flex: 1;
+            padding: 18px 265px;
+            border: none;
+            font-size: 1rem;
+            outline: none;
+        }
+        
+        button {
+            background-color: #4a6da7;
+            color: white;
+            border: none;
+            padding: 18px 18px;
+            font-size: 0.9rem;
+            border-radius: 4px;
+        }
+
+        #task-list li {
+            background-color: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+    </style>
+</head>
+<body>
+    <h1>Ajouter une nouvelle tâche</h1>
+    <input type="text" id="new-task-title" placeholder="Titre de la tâche">
+    <button onclick="addTask()">Ajouter</button>
+    <h2>Liste de Tâches</h2>
+    <ul id="task-list"></ul>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', fetchTasks);
+
+        function fetchTasks() {
+            fetch('https://jsonplaceholder.typicode.com/todos')
+                .then(response => response.json())
+                .then(tasks => {
+                    const taskList = document.getElementById('task-list');
+                    tasks.forEach(task => {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = task.title;
+                        const completeButton = document.createElement('button');
+                        completeButton.textContent = 'Terminé';
+                        completeButton.onclick = () => completeTask(task.id, listItem);
+                        listItem.appendChild(completeButton);
+                        taskList.appendChild(listItem);
+                    });
+                });
+        }
+
+        function completeTask(taskId, listItem) {
+            fetch(`https://jsonplaceholder.typicode.com/todos/${taskId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ completed: true })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('Tâche marquée comme terminée');
+                listItem.style.textDecoration = 'line-through';
+            });
+        }
+
+        function addTask() {
+            const taskTitle = document.getElementById('new-task-title').value;
+            if (taskTitle.trim() === '') {
+                alert('Le titre de la tâche ne peut pas être vide');
+                return;
+            }
+
+            fetch('https://jsonplaceholder.typicode.com/todos', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ title: taskTitle, completed: false })
+            })
+            .then(response => response.json())
+            .then(newTask => {
+                const taskList = document.getElementById('task-list');
+                const listItem = document.createElement('li');
+                listItem.textContent = newTask.title;
+                const completeButton = document.createElement('button');
+                completeButton.textContent = 'Terminé';
+                completeButton.onclick = () => completeTask(newTask.id, listItem);
+                listItem.appendChild(completeButton);
+                taskList.appendChild(listItem);
+                document.getElementById('new-task-title').value = '';
+            });
+        }
+    </script>
+</body>
+</html>
